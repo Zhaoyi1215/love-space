@@ -185,6 +185,17 @@ alter table public.wishes enable row level security;
 alter table public.messages enable row level security;
 alter table public.timeline_events enable row level security;
 
+-- 先清理旧的同名策略，保证脚本可重复运行（幂等）
+drop policy if exists "couples_select" on public.couples;
+drop policy if exists "members_select" on public.members;
+drop policy if exists "members_update_own" on public.members;
+drop policy if exists "milestones_all" on public.milestones;
+drop policy if exists "diary_all" on public.diary_entries;
+drop policy if exists "photos_all" on public.photos;
+drop policy if exists "wishes_all" on public.wishes;
+drop policy if exists "messages_all" on public.messages;
+drop policy if exists "timeline_all" on public.timeline_events;
+
 -- couples：只有本空间成员可读（创建/加入由上面的 security definer 函数完成）
 create policy "couples_select" on public.couples
   for select using (id = public.current_couple_id());
@@ -227,6 +238,10 @@ values ('photos', 'photos', true)
 on conflict (id) do nothing;
 
 -- 公开读（图片 URL 通过随机文件名保护），登录用户可上传/删除
+drop policy if exists "photos_read" on storage.objects;
+drop policy if exists "photos_insert" on storage.objects;
+drop policy if exists "photos_delete" on storage.objects;
+
 create policy "photos_read" on storage.objects
   for select using (bucket_id = 'photos');
 create policy "photos_insert" on storage.objects

@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #fff6f0;
+  color: #5c4a45;
+  font-family: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 手账纸纹背景 */
+.bg-paper {
+  background-color: #fff6f0;
+  background-image:
+    radial-gradient(circle at 15% 12%, rgba(246, 166, 180, 0.08) 0, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(251, 211, 196, 0.10) 0, transparent 42%),
+    radial-gradient(circle at 50% 80%, rgba(191, 216, 184, 0.08) 0, transparent 45%);
+}
+
+/* 隐藏滚动条但保留滚动 */
+.scroll-none::-webkit-scrollbar {
+  display: none;
+}
+.scroll-none {
+  scrollbar-width: none;
+}
+
+/* 便利贴轻微摇摆动画 */
+@keyframes noteSway {
+  0%, 100% { transform: rotate(var(--tilt, 0deg)); }
+  50% { transform: rotate(calc(var(--tilt, 0deg) + 1.5deg)); }
+}
+.note {
+  animation: noteSway 4s ease-in-out infinite;
+}

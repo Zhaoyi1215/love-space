@@ -9,7 +9,7 @@ const photoUrl = (path) => supabase.storage.from('photos').getPublicUrl(path).da
 
 export default function Photos() {
   const { coupleId, user, members } = useStore()
-  const { rows, loading } = useCollection('photos', coupleId, { orderBy: 'created_at', ascending: false })
+  const { rows, loading, reload } = useCollection('photos', coupleId, { orderBy: 'created_at', ascending: false })
   const fileRef = useRef(null)
   const [pending, setPending] = useState(null) // { url, file }
   const [caption, setCaption] = useState('')
@@ -33,20 +33,26 @@ export default function Photos() {
     const path = `${coupleId}/${crypto.randomUUID()}.${ext}`
     const { error: upErr } = await supabase.storage.from('photos').upload(path, pending.file)
     if (!upErr) {
-      await supabase.from('photos').insert({
+      const { error: insErr } = await supabase.from('photos').insert({
         couple_id: coupleId,
         author_user_id: user.id,
         storage_path: path,
         caption: caption.trim() || null,
       })
+      if (insErr) console.error('保存照片失败：', insErr.message)
     }
     setSaving(false)
     setPending(null)
+    reload()
   }
 
   const remove = async (p) => {
-    await supabase.from('photos').delete().eq('id', p.id)
-    await supabase.storage.from('photos').remove([p.storage_path])
+    const { error } = await supabase.from('photos').delete().eq('id', p.id)
+    if (error) console.error('删除照片失败：', error.message)
+    else {
+      await supabase.storage.from('photos').remove([p.storage_path])
+      reload()
+    }
   }
 
   return (

@@ -31,7 +31,7 @@ function diffParts(from, to) {
 const pad = (n) => String(n).padStart(2, '0')
 
 export default function Home() {
-  const { couple, members, milestones, myMember, partner } = useStore()
+  const { couple, members, milestones, myMember, partner, refresh } = useStore()
   const now = useNow()
   const [showMeetup, setShowMeetup] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -78,7 +78,10 @@ export default function Home() {
       { onConflict: 'id' },
     )
     setSaving(false)
-    if (!error) setShowMeetup(false)
+    if (!error) {
+      setShowMeetup(false)
+      await refresh()
+    }
   }
 
   return (

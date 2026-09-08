@@ -1,32 +1,29 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from './supabase.js'
 
-// 通用集合查询 + Realtime 实时刷新（任一变动即重新拉取）
+// 通用集合查询 + Realtime 实时刷新；同时暴露 reload 供增删改后手动刷新
 export function useCollection(table, coupleId, { orderBy = 'created_at', ascending = false } = {}) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!coupleId) {
       setRows([])
       setLoading(false)
       return
     }
-    let active = true
+    const { data } = await supabase
+      .from(table)
+      .select('*')
+      .eq('couple_id', coupleId)
+      .order(orderBy, { ascending })
+    setRows(data || [])
+    setLoading(false)
+  }, [table, coupleId, orderBy, ascending])
 
-    const load = async () => {
-      const { data } = await supabase
-        .from(table)
-        .select('*')
-        .eq('couple_id', coupleId)
-        .order(orderBy, { ascending })
-      if (active) {
-        setRows(data || [])
-        setLoading(false)
-      }
-    }
-
+  useEffect(() => {
     load()
+    if (!coupleId) return
     const channel = supabase
       .channel(`realtime-${table}-${coupleId}`)
       .on(
@@ -37,12 +34,11 @@ export function useCollection(table, coupleId, { orderBy = 'created_at', ascendi
       .subscribe()
 
     return () => {
-      active = false
       supabase.removeChannel(channel)
     }
-  }, [table, coupleId, orderBy, ascending])
+  }, [load, coupleId, table])
 
-  return { rows, loading }
+  return { rows, loading, reload: load }
 }
 
 // ---------- 常量 ----------

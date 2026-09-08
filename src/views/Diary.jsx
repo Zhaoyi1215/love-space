@@ -9,7 +9,7 @@ const moodEmoji = (v) => MOODS.find((m) => m.value === v)?.emoji || '😊'
 
 export default function Diary() {
   const { coupleId, user, members } = useStore()
-  const { rows, loading } = useCollection('diary_entries', coupleId, { orderBy: 'created_at', ascending: false })
+  const { rows, loading, reload } = useCollection('diary_entries', coupleId, { orderBy: 'created_at', ascending: false })
   const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')
   const [mood, setMood] = useState('开心')
@@ -30,11 +30,14 @@ export default function Diary() {
     if (!error) {
       setContent('')
       setOpen(false)
+      reload()
     }
   }
 
   const remove = async (id) => {
-    await supabase.from('diary_entries').delete().eq('id', id)
+    const { error } = await supabase.from('diary_entries').delete().eq('id', id)
+    if (error) console.error('删除日记失败：', error.message)
+    else reload()
   }
 
   return (

@@ -8,7 +8,7 @@ const EMOJIS = ['✨', '💕', '🎂', '🎁', '✈️', '🌊', '🍜', '🎨',
 
 export default function Timeline() {
   const { coupleId, user } = useStore()
-  const { rows, loading } = useCollection('timeline_events', coupleId, { orderBy: 'date', ascending: true })
+  const { rows, loading, reload } = useCollection('timeline_events', coupleId, { orderBy: 'date', ascending: true })
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
@@ -32,11 +32,14 @@ export default function Timeline() {
       setDesc('')
       setDate('')
       setOpen(false)
+      reload()
     }
   }
 
   const remove = async (id) => {
-    await supabase.from('timeline_events').delete().eq('id', id)
+    const { error } = await supabase.from('timeline_events').delete().eq('id', id)
+    if (error) console.error('删除时间线失败：', error.message)
+    else reload()
   }
 
   return (

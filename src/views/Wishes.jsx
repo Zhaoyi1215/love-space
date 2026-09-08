@@ -6,7 +6,7 @@ import { Button, Modal, Field, TextInput, TextArea, EmptyState, Spinner } from '
 
 export default function Wishes() {
   const { coupleId, user, members } = useStore()
-  const { rows, loading } = useCollection('wishes', coupleId, { orderBy: 'created_at', ascending: true })
+  const { rows, loading, reload } = useCollection('wishes', coupleId, { orderBy: 'created_at', ascending: true })
   const [cat, setCat] = useState('place')
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -33,6 +33,7 @@ export default function Wishes() {
       setTitle('')
       setNote('')
       setOpen(false)
+      reload()
     }
   }
 
@@ -42,10 +43,13 @@ export default function Wishes() {
     } else {
       await supabase.from('wishes').update({ status: 'todo', done_by: null, done_at: null }).eq('id', w.id)
     }
+    reload()
   }
 
   const remove = async (id) => {
-    await supabase.from('wishes').delete().eq('id', id)
+    const { error } = await supabase.from('wishes').delete().eq('id', id)
+    if (error) console.error('删除愿望失败：', error.message)
+    else reload()
   }
 
   return (

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { Card, Button, Modal, Field, TextInput } from '../components/ui.jsx'
+import { Avatar } from '../components/Avatar.jsx'
+import EditProfileModal from '../components/EditProfileModal.jsx'
 import { timeInZone } from '../lib/hooks.js'
 
 function useNow(interval = 1000) {
@@ -31,6 +33,7 @@ export default function Home() {
   const { couple, members, milestones, myMember, partner } = useStore()
   const now = useNow()
   const [showMeetup, setShowMeetup] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const [meetupTitle, setMeetupTitle] = useState('见面')
   const [meetupDate, setMeetupDate] = useState('')
   const [saving, setSaving] = useState(false)
@@ -81,11 +84,11 @@ export default function Home() {
       {/* 顶部：两人 + 情侣码 */}
       <Card className="text-center">
         <div className="flex items-center justify-center gap-3">
-          <span className="text-2xl">{myMember?.emoji || '💕'}</span>
+          <Avatar member={myMember} size="lg" />
           <h1 className="font-display text-2xl text-cocoa">
             {myMember?.nickname || '我'} <span className="text-blush">❤</span> {partner?.nickname || 'TA'}
           </h1>
-          <span className="text-2xl">{partner?.emoji || '💕'}</span>
+          <Avatar member={partner} size="lg" />
         </div>
         <button
           onClick={copyCode}
@@ -94,6 +97,12 @@ export default function Home() {
           情侣码 <span className="font-display tracking-[0.2em]">{couple?.code}</span> 📋
         </button>
         <p className="mt-1 text-xs text-cocoaSoft/70">点一下复制，发给 TA 加入这个空间</p>
+        <button
+          onClick={() => setShowProfile(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-full bg-cream px-4 py-1.5 text-sm font-bold text-cocoaSoft"
+        >
+          ✏️ 编辑我的资料
+        </button>
       </Card>
 
       {/* 在一起天数 */}
@@ -151,7 +160,7 @@ export default function Home() {
           {members.map((m) => (
             <div key={m.id} className="flex items-center justify-between rounded-2xl bg-cream px-4 py-3">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{m.emoji}</span>
+                <Avatar member={m} size="md" />
                 <div>
                   <div className="font-bold text-cocoa">{m.nickname}</div>
                   <div className="text-xs text-cocoaSoft">{m.city || '未填写城市'}</div>
@@ -183,6 +192,9 @@ export default function Home() {
           </Button>
         </div>
       </Modal>
+
+      {/* 编辑资料弹窗 */}
+      <EditProfileModal open={showProfile} onClose={() => setShowProfile(false)} />
     </div>
   )
 }

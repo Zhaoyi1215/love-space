@@ -2,19 +2,21 @@ import { supabase } from './supabase.js'
 
 // 匿名登录：每个设备/浏览器获得一个稳定身份，无需邮箱
 export async function ensureAnonymousUser() {
-  const { data: session } = await supabase.auth.getSession()
-  if (session?.session?.user) return session.session.user
+  // 先尝试恢复并校验已有会话（getUser 联网校验 + 自动刷新过期 token）
+  const { data } = await supabase.auth.getUser()
+  if (data?.user) return data.user
 
-  const { data, error } = await supabase.auth.signInAnonymously()
+  const { data: signIn, error } = await supabase.auth.signInAnonymously()
   if (error) throw error
-  return data.user
+  return signIn.user
 }
 
-// 查询当前用户所属空间（用于"清空缓存后仍能自动进入"）
-export async function fetchMyMember() {
+// 查询当前用户所属空间（按 user_id 精确过滤，避免多成员时 maybeSingle 报错）
+export async function fetchMyMember(userId) {
   const { data, error } = await supabase
     .from('members')
     .select('*')
+    .eq('user_id', userId)
     .maybeSingle()
   if (error) throw error
   return data
@@ -76,12 +78,14 @@ export async function fetchMilestones(coupleId) {
 }
 
 // 更新自己的资料
-export async function updateMyProfile({ nickname, emoji, city, timezone }) {
+export async function updateMyProfile({ nickname, emoji, city, timezone, avatar_path }) {
   const { data: user } = await supabase.auth.getUser()
   if (!user?.user) return
+  const update = { nickname, emoji, city, timezone }
+  if (avatar_path !== undefined) update.avatar_path = avatar_path // 允许置 null（恢复 emoji 头像）
   const { error } = await supabase
     .from('members')
-    .update({ nickname, emoji, city, timezone })
+    .update(update)
     .eq('user_id', user.user.id)
   if (error) throw error
 }

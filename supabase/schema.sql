@@ -160,6 +160,11 @@ begin
     raise exception '无效的情侣码，请检查后重试';
   end if;
 
+  -- 每个空间最多两人：满员则拒绝加入（排除当前用户自己，允许本人重新加入）
+  if (select count(*) from public.members where couple_id = v_couple_id and user_id <> auth.uid()) >= 2 then
+    raise exception '该空间已满员，最多只能两人加入';
+  end if;
+
   -- 一个用户只属于一个空间：先清理旧关系再插入
   delete from public.members where user_id = auth.uid();
 
@@ -268,3 +273,24 @@ begin
   end loop;
 end;
 $$;
+
+-- ---------- 6. 头像上传 Storage ----------
+
+-- members 增加头像路径字段（可空；为 null 时前端回退到 emoji）
+alter table public.members add column if not exists avatar_path text;
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- 公开读（随机文件名保护），登录用户可上传/删除
+drop policy if exists "avatars_read" on storage.objects;
+drop policy if exists "avatars_insert" on storage.objects;
+drop policy if exists "avatars_delete" on storage.objects;
+
+create policy "avatars_read" on storage.objects
+  for select using (bucket_id = 'avatars');
+create policy "avatars_insert" on storage.objects
+  for insert with check (bucket_id = 'avatars' and auth.uid() is not null);
+create policy "avatars_delete" on storage.objects
+  for delete using (bucket_id = 'avatars' and auth.uid() is not null);

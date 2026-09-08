@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, NOTE_COLORS, formatDateTime } from '../lib/hooks.js'
 import { Button, Modal, TextArea, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Avatar } from '../components/Avatar.jsx'
 
 // 根据 id 稳定地选一个便利贴颜色和倾斜角度
 function noteStyle(id) {
@@ -66,8 +67,8 @@ export default function Messages() {
               >
                 <p className="whitespace-pre-wrap break-words text-sm text-cocoa">{m.content}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs font-bold text-cocoaSoft/80">
-                    {author?.emoji} {author?.nickname}
+                  <span className="flex items-center gap-1 text-xs font-bold text-cocoaSoft/80">
+                    <Avatar member={author} size="sm" /> {author?.nickname}
                   </span>
                   <span className="text-[10px] text-cocoaSoft/60">{formatDateTime(m.created_at).slice(5, 16)}</span>
                 </div>

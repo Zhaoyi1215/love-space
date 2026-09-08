@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, formatDateTime } from '../lib/hooks.js'
 import { Button, Modal, TextInput, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Avatar } from '../components/Avatar.jsx'
 
 const photoUrl = (path) => supabase.storage.from('photos').getPublicUrl(path).data.publicUrl
 
@@ -101,9 +102,10 @@ export default function Photos() {
         {view && (
           <div>
             <img src={photoUrl(view.storage_path)} alt={view.caption || '照片'} className="w-full rounded-2xl" />
-            <p className="mt-3 text-center text-xs text-cocoaSoft">
-              {memberMap[view.author_user_id]?.emoji} {memberMap[view.author_user_id]?.nickname} · {formatDateTime(view.created_at)}
-            </p>
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs text-cocoaSoft">
+              <Avatar member={memberMap[view.author_user_id]} size="sm" />
+              <span>{memberMap[view.author_user_id]?.nickname} · {formatDateTime(view.created_at)}</span>
+            </div>
           </div>
         )}
       </Modal>

@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, MOODS, formatDateTime } from '../lib/hooks.js'
 import { Card, Button, Modal, TextArea, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Avatar } from '../components/Avatar.jsx'
 
 const moodEmoji = (v) => MOODS.find((m) => m.value === v)?.emoji || '😊'
 
@@ -59,7 +60,7 @@ export default function Diary() {
               <Card key={d.id} className="animate-floatIn relative">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{author?.emoji || '💕'}</span>
+                    <Avatar member={author} size="md" />
                     <div>
                       <div className="text-sm font-bold text-cocoa">{author?.nickname || 'TA'}</div>
                       <div className="text-xs text-cocoaSoft/70">{formatDateTime(d.created_at)}</div>

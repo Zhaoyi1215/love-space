@@ -38,7 +38,7 @@ export function StoreProvider({ children }) {
         const u = await ensureAnonymousUser()
         if (cancelled) return
         setUser(u)
-        const member = await fetchMyMember()
+        const member = await fetchMyMember(u.id)
         if (cancelled) return
         if (member) await loadSpace(member.couple_id)
       } catch (e) {

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase.js'
 import { Card, Button, Modal, Field, TextInput } from '../components/ui.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import EditProfileModal from '../components/EditProfileModal.jsx'
+import ManageMembersModal from '../components/ManageMembersModal.jsx'
 import { timeInZone } from '../lib/hooks.js'
 
 function useNow(interval = 1000) {
@@ -34,6 +35,7 @@ export default function Home() {
   const now = useNow()
   const [showMeetup, setShowMeetup] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
   const [meetupTitle, setMeetupTitle] = useState('见面')
   const [meetupDate, setMeetupDate] = useState('')
   const [saving, setSaving] = useState(false)
@@ -155,7 +157,12 @@ export default function Home() {
 
       {/* 两人时区 */}
       <Card>
-        <p className="mb-3 text-sm font-bold text-cocoaSoft">我们此刻的时间</p>
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-bold text-cocoaSoft">我们此刻的时间</p>
+          <button onClick={() => setShowMembers(true)} className="text-xs font-bold text-rosy">
+            管理成员
+          </button>
+        </div>
         <div className="space-y-3">
           {members.map((m) => (
             <div key={m.id} className="flex items-center justify-between rounded-2xl bg-cream px-4 py-3">
@@ -195,6 +202,9 @@ export default function Home() {
 
       {/* 编辑资料弹窗 */}
       <EditProfileModal open={showProfile} onClose={() => setShowProfile(false)} />
+
+      {/* 管理成员弹窗 */}
+      <ManageMembersModal open={showMembers} onClose={() => setShowMembers(false)} />
     </div>
   )
 }

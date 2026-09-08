@@ -57,7 +57,12 @@ export function StoreProvider({ children }) {
     const [m, ms] = await Promise.all([fetchMembers(coupleId), fetchMilestones(coupleId)])
     setMembers(m || [])
     setMilestones(ms || [])
-  }, [coupleId])
+    // 若当前用户已被移出空间，回到引导页
+    if (user && !m?.some((x) => x.user_id === user.id)) {
+      setCoupleId(null)
+      setCouple(null)
+    }
+  }, [coupleId, user])
 
   // 成员 / 纪念日 变动时实时刷新（例如对方加入空间、改时间）
   useEffect(() => {

@@ -194,6 +194,7 @@ alter table public.timeline_events enable row level security;
 drop policy if exists "couples_select" on public.couples;
 drop policy if exists "members_select" on public.members;
 drop policy if exists "members_update_own" on public.members;
+drop policy if exists "members_delete_other" on public.members;
 drop policy if exists "milestones_all" on public.milestones;
 drop policy if exists "diary_all" on public.diary_entries;
 drop policy if exists "photos_all" on public.photos;
@@ -205,11 +206,13 @@ drop policy if exists "timeline_all" on public.timeline_events;
 create policy "couples_select" on public.couples
   for select using (id = public.current_couple_id());
 
--- members：本空间成员互相可见；只能改自己的资料
+-- members：本空间成员互相可见；只能改自己的资料；可移除同空间其他成员
 create policy "members_select" on public.members
   for select using (couple_id = public.current_couple_id());
 create policy "members_update_own" on public.members
   for update using (user_id = auth.uid());
+create policy "members_delete_other" on public.members
+  for delete using (couple_id = public.current_couple_id() and user_id <> auth.uid());
 
 -- 以下业务表：只有本空间成员可读写
 create policy "milestones_all" on public.milestones

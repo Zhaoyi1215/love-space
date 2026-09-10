@@ -213,6 +213,10 @@ create policy "members_update_own" on public.members
   for update using (user_id = auth.uid());
 create policy "members_delete_other" on public.members
   for delete using (couple_id = public.current_couple_id() and user_id <> auth.uid());
+-- 允许用户主动退出：删除自己的成员记录（空间与所有内容保留，情侣码仍可重新加入）
+drop policy if exists "members_delete_self" on public.members;
+create policy "members_delete_self" on public.members
+  for delete using (user_id = auth.uid());
 
 -- 以下业务表：只有本空间成员可读写
 create policy "milestones_all" on public.milestones

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, formatDate } from '../lib/hooks.js'
-import { Button, Modal, Field, TextInput, TextArea, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Button, Modal, Field, TextInput, TextArea, EmptyState, Spinner, SectionTitle, ConfirmModal } from '../components/ui.jsx'
 
 const EMOJIS = ['✨', '💕', '🎂', '🎁', '✈️', '🌊', '🍜', '🎨', '🌙', '📷', '🎉', '💍']
 
@@ -15,6 +15,7 @@ export default function Timeline() {
   const [desc, setDesc] = useState('')
   const [emoji, setEmoji] = useState('✨')
   const [saving, setSaving] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   const add = async () => {
     if (!title.trim() || !date) return
@@ -40,6 +41,7 @@ export default function Timeline() {
     const { error } = await supabase.from('timeline_events').delete().eq('id', id)
     if (error) console.error('删除时间线失败：', error.message)
     else reload()
+    setPendingDelete(null)
   }
 
   return (
@@ -63,7 +65,7 @@ export default function Timeline() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-cocoa">{e.title}</h3>
                   <button
-                    onClick={() => remove(e.id)}
+                    onClick={() => setPendingDelete(e.id)}
                     className="text-xs text-cocoaSoft/50 hover:text-rosy"
                   >
                     删除
@@ -110,6 +112,13 @@ export default function Timeline() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => remove(pendingDelete)}
+        message="确定删除这个时间节点吗？"
+      />
     </div>
   )
 }

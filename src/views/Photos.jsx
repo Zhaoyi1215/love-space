@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, formatDateTime } from '../lib/hooks.js'
-import { Button, Modal, TextInput, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Button, Modal, TextInput, EmptyState, Spinner, SectionTitle, ConfirmModal } from '../components/ui.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 
 const photoUrl = (path) => supabase.storage.from('photos').getPublicUrl(path).data.publicUrl
@@ -15,6 +15,7 @@ export default function Photos() {
   const [caption, setCaption] = useState('')
   const [saving, setSaving] = useState(false)
   const [view, setView] = useState(null)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
@@ -53,6 +54,7 @@ export default function Photos() {
       await supabase.storage.from('photos').remove([p.storage_path])
       reload()
     }
+    setPendingDelete(null)
   }
 
   return (
@@ -76,14 +78,12 @@ export default function Photos() {
                   <img src={photoUrl(p.storage_path)} alt={p.caption || '照片'} className="aspect-square w-full object-cover transition group-hover:scale-105" loading="lazy" />
                 </button>
                 {p.caption && <p className="mt-1 truncate px-1 text-xs text-cocoaSoft">{p.caption}</p>}
-                {p.author_user_id === user.id && (
-                  <button
-                    onClick={() => remove(p)}
-                    className="absolute right-2 top-2 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white opacity-0 transition group-hover:opacity-100"
-                  >
-                    删除
-                  </button>
-                )}
+                <button
+                  onClick={() => setPendingDelete(p)}
+                  className="absolute right-2 top-2 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white opacity-0 transition group-hover:opacity-100"
+                >
+                  删除
+                </button>
               </div>
             )
           })}
@@ -115,6 +115,13 @@ export default function Photos() {
           </div>
         )}
       </Modal>
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => remove(pendingDelete)}
+        message="删除后照片文件也会一并删除，且无法恢复。确定删除吗？"
+      />
     </div>
   )
 }

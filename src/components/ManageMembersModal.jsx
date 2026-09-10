@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
+import { leaveCouple } from '../lib/couple.js'
 import { Modal, Button } from './ui.jsx'
 import { Avatar } from './Avatar.jsx'
 
 export default function ManageMembersModal({ open, onClose }) {
-  const { members, user, refresh } = useStore()
+  const { members, user, refresh, leaveSpace } = useStore()
   const [confirmId, setConfirmId] = useState(null)
+  const [confirmLeave, setConfirmLeave] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const remove = async (member) => {
@@ -20,6 +22,25 @@ export default function ManageMembersModal({ open, onClose }) {
     setBusy(false)
     setConfirmId(null)
     if (!error) await refresh()
+  }
+
+  const leave = async () => {
+    // 两段确认：第一次点击进入确认态，再点一次才真正退出
+    if (!confirmLeave) {
+      setConfirmLeave(true)
+      return
+    }
+    setBusy(true)
+    try {
+      await leaveCouple()
+      leaveSpace()
+      onClose()
+    } catch (e) {
+      console.error('退出空间失败：', e.message)
+    } finally {
+      setBusy(false)
+      setConfirmLeave(false)
+    }
   }
 
   return (
@@ -40,7 +61,14 @@ export default function ManageMembersModal({ open, onClose }) {
                 </div>
               </div>
               {isSelf ? (
-                <span className="text-xs text-cocoaSoft/60">这是你</span>
+                <Button
+                  variant={confirmLeave ? 'primary' : 'ghost'}
+                  onClick={leave}
+                  disabled={busy}
+                  className="px-3 py-1.5 text-sm"
+                >
+                  {confirmLeave ? '确认退出？' : '退出空间'}
+                </Button>
               ) : (
                 <Button
                   variant={confirmId === m.id ? 'primary' : 'ghost'}
@@ -55,6 +83,7 @@ export default function ManageMembersModal({ open, onClose }) {
           )
         })}
         <p className="text-xs text-cocoaSoft/70">移除后对方会回到引导页；空间里的日记、照片等数据仍保留。</p>
+        <p className="text-xs text-cocoaSoft/70">退出后你发布的日记、照片等仍保留在空间里，可用原情侣码随时重新加入查看。</p>
       </div>
     </Modal>
   )

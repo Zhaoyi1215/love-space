@@ -92,6 +92,14 @@ export function StoreProvider({ children }) {
     [loadSpace],
   )
 
+  // 退出空间：清空空间相关状态，回到引导页
+  const leaveSpace = useCallback(() => {
+    setCoupleId(null)
+    setCouple(null)
+    setMembers([])
+    setMilestones([])
+  }, [])
+
   const value = {
     user,
     coupleId,
@@ -101,6 +109,7 @@ export function StoreProvider({ children }) {
     loading,
     refresh,
     enterSpace,
+    leaveSpace,
     myMember: members.find((m) => m.user_id === user?.id) || null,
     partner: members.find((m) => m.user_id !== user?.id) || null,
   }

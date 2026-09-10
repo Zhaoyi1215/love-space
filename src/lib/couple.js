@@ -89,3 +89,14 @@ export async function updateMyProfile({ nickname, emoji, city, timezone, avatar_
     .eq('user_id', user.user.id)
   if (error) throw error
 }
+
+// 主动退出空间：只删除自己的成员记录，空间与所有内容保留，情侣码仍可重新加入
+export async function leaveCouple() {
+  const { data: u } = await supabase.auth.getUser()
+  if (!u?.user) return
+  const { error } = await supabase
+    .from('members')
+    .delete()
+    .eq('user_id', u.user.id)
+  if (error) throw error
+}

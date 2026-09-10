@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, MOODS, formatDateTime } from '../lib/hooks.js'
-import { Card, Button, Modal, TextArea, EmptyState, Spinner, SectionTitle } from '../components/ui.jsx'
+import { Card, Button, Modal, TextArea, EmptyState, Spinner, SectionTitle, ConfirmModal } from '../components/ui.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 
 const moodEmoji = (v) => MOODS.find((m) => m.value === v)?.emoji || '😊'
@@ -11,6 +11,7 @@ export default function Diary() {
   const { coupleId, user, members } = useStore()
   const { rows, loading, reload } = useCollection('diary_entries', coupleId, { orderBy: 'created_at', ascending: false })
   const [open, setOpen] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
   const [content, setContent] = useState('')
   const [mood, setMood] = useState('开心')
   const [saving, setSaving] = useState(false)
@@ -38,6 +39,7 @@ export default function Diary() {
     const { error } = await supabase.from('diary_entries').delete().eq('id', id)
     if (error) console.error('删除日记失败：', error.message)
     else reload()
+    setPendingDelete(null)
   }
 
   return (
@@ -58,7 +60,6 @@ export default function Diary() {
         <div className="space-y-3">
           {rows.map((d) => {
             const author = memberMap[d.author_user_id]
-            const mine = d.author_user_id === user.id
             return (
               <Card key={d.id} className="animate-floatIn relative">
                 <div className="mb-2 flex items-center justify-between">
@@ -74,14 +75,12 @@ export default function Diary() {
                   </span>
                 </div>
                 <p className="whitespace-pre-wrap text-cocoa">{d.content}</p>
-                {mine && (
-                  <button
-                    onClick={() => remove(d.id)}
-                    className="absolute right-3 top-3 text-xs text-cocoaSoft/50 hover:text-rosy"
-                  >
-                    删除
-                  </button>
-                )}
+                <button
+                  onClick={() => setPendingDelete(d.id)}
+                  className="absolute right-3 top-3 text-xs text-cocoaSoft/50 hover:text-rosy"
+                >
+                  删除
+                </button>
               </Card>
             )
           })}
@@ -119,6 +118,13 @@ export default function Diary() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => remove(pendingDelete)}
+        message="删除后无法恢复，确定删除这篇日记吗？"
+      />
     </div>
   )
 }

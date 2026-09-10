@@ -102,3 +102,16 @@ export function SectionTitle({ children, right }) {
     </div>
   )
 }
+
+// 删除/危险操作的二次确认弹窗
+export function ConfirmModal({ open, onClose, onConfirm, title = '确认删除？', message, confirmLabel = '删除', busy = false }) {
+  return (
+    <Modal open={open} onClose={onClose} title={title}>
+      <p className="mb-4 text-sm text-cocoaSoft">{message}</p>
+      <div className="flex gap-3">
+        <Button variant="ghost" className="flex-1" onClick={onClose}>取消</Button>
+        <Button className="flex-1" onClick={onConfirm} disabled={busy}>{busy ? '删除中…' : confirmLabel}</Button>
+      </div>
+    </Modal>
+  )
+}

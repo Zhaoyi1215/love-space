@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCollection, WISH_CATEGORIES, formatDate } from '../lib/hooks.js'
-import { Button, Modal, Field, TextInput, TextArea, EmptyState, Spinner } from '../components/ui.jsx'
+import { Button, Modal, Field, TextInput, TextArea, EmptyState, Spinner, ConfirmModal } from '../components/ui.jsx'
 
 export default function Wishes() {
   const { coupleId, user, members } = useStore()
@@ -12,6 +12,7 @@ export default function Wishes() {
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
@@ -50,6 +51,7 @@ export default function Wishes() {
     const { error } = await supabase.from('wishes').delete().eq('id', id)
     if (error) console.error('删除愿望失败：', error.message)
     else reload()
+    setPendingDelete(null)
   }
 
   return (
@@ -94,7 +96,7 @@ export default function Wishes() {
                 <div className="font-bold text-cocoa">{w.title}</div>
                 {w.note && <div className="truncate text-xs text-cocoaSoft">{w.note}</div>}
               </div>
-              <button onClick={() => remove(w.id)} className="text-xs text-cocoaSoft/50 hover:text-rosy">
+              <button onClick={() => setPendingDelete(w.id)} className="text-xs text-cocoaSoft/50 hover:text-rosy">
                 删除
               </button>
             </div>
@@ -132,6 +134,13 @@ export default function Wishes() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => remove(pendingDelete)}
+        message="确定删除这个愿望吗？"
+      />
     </div>
   )
 }
